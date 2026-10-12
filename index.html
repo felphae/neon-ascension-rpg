@@ -1,0 +1,246 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#090911">
+<title>NEON ASCENSION RPG</title>
+<style>
+:root {
+  --bg:#090911; --panel:#141421; --pink:#ff3f9f;
+  --cyan:#48f0e5; --gold:#e9c77b; --text:#f4f0fa;
+  --muted:#9996ad;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:Arial,sans-serif;
+  background-image:linear-gradient(145deg,#171020 0%,#090911 50%);
+  min-height:100vh;
+}
+header{padding:25px 20px 16px;border-bottom:1px solid #343044}
+.eyebrow{color:var(--cyan);font-size:11px;letter-spacing:4px}
+h1{font-size:27px;letter-spacing:2px;margin:10px 0}
+h1 span{color:var(--pink)}
+p{line-height:1.5}
+.muted{color:var(--muted);font-size:13px}
+main{padding:18px;max-width:650px;margin:auto}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.card{background:var(--panel);border:1px solid #343044;
+  padding:15px;border-radius:5px}
+.stat-label{font-size:10px;color:var(--muted);letter-spacing:1px}
+.stat-value{font-size:24px;font-weight:bold;margin-top:8px}
+.pink{color:var(--pink)} .cyan{color:var(--cyan)}
+.gold{color:var(--gold)}
+.section-title{font-size:15px;letter-spacing:2px;margin:27px 0 12px}
+.progress{height:6px;background:#302c40;margin-top:13px}
+.progress div{height:100%;background:var(--cyan);width:0;transition:.2s}
+.tabs{display:flex;gap:7px;overflow:auto;margin:22px 0}
+button,input{font:inherit}
+button{cursor:pointer}
+.tab,.action{border:1px solid #454057;background:#171522;
+ color:var(--text);padding:11px;border-radius:3px}
+.tab.active{border-color:var(--pink);color:var(--pink)}
+.task{display:flex;align-items:center;gap:12px;margin-bottom:9px}
+.task-info{flex:1;min-width:0}
+.task-name{font-size:14px;font-weight:bold}
+.task-meta{font-size:11px;color:var(--muted);margin-top:6px}
+.complete{border-color:var(--cyan);color:var(--cyan);min-width:76px}
+.complete:disabled{opacity:.5;cursor:default}
+.done .task-name{text-decoration:line-through;color:var(--muted)}
+input{width:100%;background:#090911;color:white;border:1px solid #454057;
+ padding:12px;border-radius:3px;outline:none}
+input:focus{border-color:var(--cyan)}
+.add-row{display:flex;gap:8px}
+.add-row input{min-width:0}
+.action{border-color:var(--pink);color:var(--pink)}
+.wide{width:100%;margin-top:12px}
+.reward{margin-bottom:9px}
+.reward button{margin-top:10px;width:100%}
+footer{text-align:center;color:var(--muted);font-size:10px;
+ padding:28px;letter-spacing:2px}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">LIFE SYSTEM // VERSION 01</div>
+  <h1>NEON <span>ASCENSION</span></h1>
+  <div class="muted">Sua vida é o jogo. Evolua todos os dias.</div>
+</header>
+<main>
+  <div class="stats">
+    <div class="card">
+      <div class="stat-label">NÍVEL</div>
+      <div class="stat-value pink" id="level">1</div>
+    </div>
+    <div class="card">
+      <div class="stat-label">XP TOTAL</div>
+      <div class="stat-value cyan" id="xp">0</div>
+    </div>
+    <div class="card">
+      <div class="stat-label">MOEDAS</div>
+      <div class="stat-value gold" id="coins">0</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div id="levelText">PRÓXIMO NÍVEL: 100 XP</div>
+    <div class="progress"><div id="bar"></div></div>
+    <p class="muted" id="progressText">0 / 100 XP</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-page="quests">MISSÕES</button>
+    <button class="tab" data-page="rewards">RECOMPENSAS</button>
+  </div>
+
+  <section id="quests">
+    <div class="section-title">/// MISSÕES DO DIA</div>
+    <p class="muted">Missões difíceis valem mais XP. Cada missão só pode dar recompensa uma vez por dia.</p>
+    <div id="taskList"></div>
+    <div class="section-title">+ NOVA MISSÃO</div>
+    <input id="taskName" maxlength="70" placeholder="Ex.: Estudar programação por 30 min">
+    <div class="add-row" style="margin-top:8px">
+      <input id="taskXP" type="number" min="1" max="500" value="30"
+        aria-label="XP da missão" placeholder="XP">
+      <input id="taskCoins" type="number" min="0" max="500" value="10"
+        aria-label="Moedas da missão" placeholder="Moedas">
+    </div>
+    <button class="action wide" id="addTask">+ ADICIONAR MISSÃO</button>
+  </section>
+
+  <section id="rewards" hidden>
+    <div class="section-title">/// LOJA DE RECOMPENSAS</div>
+    <p class="muted">Gaste apenas as moedas conquistadas. Personalize os custos para caber no seu orçamento real.</p>
+    <div id="rewardList"></div>
+    <div class="section-title">+ CRIAR RECOMPENSA</div>
+    <input id="rewardName" maxlength="70" placeholder="Ex.: Comprar algo especial">
+    <div class="add-row" style="margin-top:8px">
+      <input id="rewardCost" type="number" min="1" max="100000" value="100"
+        aria-label="Custo em moedas" placeholder="Custo">
+      <button class="action" id="addReward">CRIAR</button>
+    </div>
+  </section>
+
+  <div class="section-title">/// SISTEMA</div>
+  <p class="muted">Seu progresso fica salvo neste navegador. Limpar os dados do navegador pode apagar o progresso.</p>
+  <button class="tab" id="reset">Reiniciar progresso</button>
+</main>
+<footer>DISCIPLINA // CONSISTÊNCIA // ASCENSÃO</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const today = () => new Date().toLocaleDateString('en-CA');
+const defaults = [
+ {id:'read',name:'Ler um livro',xp:35,coins:10},
+ {id:'study',name:'Estudar com foco',xp:50,coins:15},
+ {id:'train',name:'Treinar na academia',xp:25,coins:10},
+ {id:'routine',name:'Cumprir a rotina noturna',xp:20,coins:8}
+];
+const defaultRewards = [
+ {id:'music',name:'Tempo livre / música',cost:30},
+ {id:'treat',name:'Pequeno mimo',cost:100},
+ {id:'special',name:'Recompensa especial',cost:300}
+];
+function load(){
+ try {
+  const s=JSON.parse(localStorage.getItem('neonRPG'));
+  if(s && Array.isArray(s.tasks) && Array.isArray(s.rewards)) return s;
+ } catch(e){}
+ return {xp:0,coins:0,tasks:defaults.map(t=>({...t})),
+ rewards:defaultRewards.map(r=>({...r})),done:{},spent:[]};
+}
+let state=load();
+if(!state.done)state.done={};
+if(!state.spent)state.spent=[];
+function save(){localStorage.setItem('neonRPG',JSON.stringify(state))}
+function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({
+ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+}[c]))}
+function render(){
+ const level=Math.floor(state.xp/100)+1;
+ const current=state.xp%100;
+ $('level').textContent=level;
+ $('xp').textContent=state.xp;
+ $('coins').textContent=state.coins;
+ $('bar').style.width=current+'%';
+ $('progressText').textContent=current+' / 100 XP para o próximo nível';
+ $('levelText').textContent='NÍVEL '+level+' // PRÓXIMO: '+(level*100)+' XP';
+ $('taskList').innerHTML=state.tasks.map(t=>{
+  const done=state.done[today()]?.includes(t.id);
+  return `<div class="card task ${done?'done':''}">
+   <div class="task-info">
+    <div class="task-name">${escapeHTML(t.name)}</div>
+    <div class="task-meta">+${t.xp} XP · +${t.coins} moedas</div>
+   </div>
+   <button class="tab complete" data-complete="${escapeHTML(t.id)}"
+   ${done?'disabled':''}>${done?'FEITA':'CONCLUIR'}</button>
+  </div>`;
+ }).join('')||'<p class="muted">Nenhuma missão. Crie sua primeira!</p>';
+ $('rewardList').innerHTML=state.rewards.map(r=>{
+  const spent=state.spent.includes(r.id);
+  return `<div class="card reward">
+   <div class="task-name">${escapeHTML(r.name)}</div>
+   <div class="task-meta">${r.cost} moedas</div>
+   <button class="tab wide" data-buy="${escapeHTML(r.id)}"
+    ${spent||state.coins<r.cost?'disabled':''}>
+    ${spent?'RESGATADA':state.coins<r.cost?'MOEDAS INSUFICIENTES':'RESGATAR'}
+   </button>
+  </div>`;
+ }).join('');
+}
+$('taskList').addEventListener('click',e=>{
+ const b=e.target.closest('[data-complete]');
+ if(!b)return;
+ const t=state.tasks.find(t=>t.id===b.dataset.complete);
+ if(!t)return;
+ if(!state.done[today()])state.done[today()]=[];
+ if(state.done[today()].includes(t.id))return;
+ state.done[today()].push(t.id);
+ state.xp+=t.xp;state.coins+=t.coins;save();render();
+});
+$('addTask').onclick=()=>{
+ const name=$('taskName').value.trim();
+ const xp=Number($('taskXP').value),coins=Number($('taskCoins').value);
+ if(!name||!Number.isInteger(xp)||xp<1||xp>500||
+ !Number.isInteger(coins)||coins<0||coins>500){
+  alert('Preencha a missão e valores válidos.');return;
+ }
+ state.tasks.push({id:crypto.randomUUID(),name,xp,coins});
+ $('taskName').value='';save();render();
+};
+document.querySelectorAll('[data-page]').forEach(b=>{
+ b.onclick=()=>{
+  document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===b));
+  $('quests').hidden=b.dataset.page!=='quests';
+  $('rewards').hidden=b.dataset.page!=='rewards';
+ };
+});
+$('addReward').onclick=()=>{
+ const name=$('rewardName').value.trim(),cost=Number($('rewardCost').value);
+ if(!name||!Number.isInteger(cost)||cost<1||cost>100000){
+  alert('Preencha uma recompensa e um custo válido.');return;
+ }
+ state.rewards.push({id:crypto.randomUUID(),name,cost});
+ $('rewardName').value='';save();render();
+};
+$('rewardList').addEventListener('click',e=>{
+ const b=e.target.closest('[data-buy]');
+ if(!b)return;
+ const r=state.rewards.find(r=>r.id===b.dataset.buy);
+ if(!r||state.spent.includes(r.id)||state.coins<r.cost)return;
+ if(!confirm('Resgatar '+r.name+' por '+r.cost+' moedas?'))return;
+ state.coins-=r.cost;state.spent.push(r.id);save();render();
+});
+$('reset').onclick=()=>{
+ if(!confirm('Apagar todo o progresso deste RPG?'))return;
+ state={xp:0,coins:0,tasks:defaults.map(t=>({...t})),
+ rewards:defaultRewards.map(r=>({...r})),done:{},spent:[]};
+ save();render();
+};
+render();
+</script>
+</body>
+  </html>
+  
